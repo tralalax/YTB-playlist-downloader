@@ -49,7 +49,7 @@ pub fn read_config_file() -> HashMap<String, String> {
     else {
         // create a output folder in root directory
         log::warn!("download path not found in config file, creating a output folder...");
-            
+        
         if Path::new("output").exists() {
             log::info!("found an output folder in root directory");
             output_dict.insert("download_path".to_string(), fs::canonicalize("output").unwrap().into_os_string().into_string().unwrap());

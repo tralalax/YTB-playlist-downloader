@@ -79,7 +79,9 @@ pub fn download(video: VideoToDl) -> Result<youtube_dl::YoutubeDlOutput, youtube
 fn download_audio(video: VideoToDl) -> Result<youtube_dl::YoutubeDlOutput, youtube_dl::Error> {
 
     let _ydl: YoutubeDlOutput = match YoutubeDl::new(video.url)
+        
         .youtube_dl_path(video.youtube_dl_path)
+        .extra_arg("-q")
         // DOWNLOAD AUDIO FILE (require ffmpeg)
         .extract_audio(true) 
         .extra_arg("--audio-format")
@@ -101,6 +103,7 @@ fn download_video(video: VideoToDl) -> Result<youtube_dl::YoutubeDlOutput, youtu
 
     let _ydl: YoutubeDlOutput = match YoutubeDl::new(video.url)
         .youtube_dl_path(video.youtube_dl_path)
+        .extra_arg("-q")
         .extra_arg("--paths")
         .extra_arg(video.dl_path)
         .download(true)
@@ -120,7 +123,9 @@ pub fn get_video_from_pl(pl_id: &str, youtube_dl_path: &String) -> Result<Vec<St
     let mut ids_list: Vec<String> = Vec::new();
 
     let _ydl: YoutubeDlOutput = match YoutubeDl::new(pl_url)
+        
         .youtube_dl_path(youtube_dl_path)
+        .extra_arg("-q")
         .run()
     {
         Ok(res) => {
@@ -148,6 +153,7 @@ pub fn get_playlist_title(pl_id: &str, youtube_dl_path: &String) -> Result<Strin
     
     let _ydl: YoutubeDlOutput = match YoutubeDl::new(pl_url)
         .youtube_dl_path(youtube_dl_path)
+        .extra_arg("-q")
         .run()
     {
         Ok(res) => {

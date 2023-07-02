@@ -1,5 +1,5 @@
 // uncomment to disable console
-#![windows_subsystem = "windows"]
+// #![windows_subsystem = "windows"]
 
 mod downloader;
 mod database;
@@ -29,6 +29,25 @@ use std::path::Path;
 fn main() {
     // setup logging
     setup_logging();
+
+    println!(r#"
+    __     _________ ____       _____  _           __     ___      _____  _____ _______
+    \ \   / /__   __|  _ \     |  __ \| |        /\\ \   / / |    |_   _|/ ____|__   __|
+     \ \_/ /   | |  | |_) |    | |__) | |       /  \\ \_/ /| |      | | | (___    | |  
+      \   /    | |  |  _ <     |  ___/| |      / /\ \\   / | |      | |  \___ \   | |  
+       | |     | |  | |_) |    | |    | |____ / ____ \| |  | |____ _| |_ ____) |  | |  
+       |_|     |_|  |____/     |_|    |______/_/    \_\_|  |______|_____|_____/   |_|  
+"#
+    );
+    println!(r#"
+         _____   ______          ___   _ _      ____          _____  ______ _____  
+        |  __ \ / __ \ \        / / \ | | |    / __ \   /\   |  __ \|  ____|  __ \ 
+        | |  | | |  | \ \  /\  / /|  \| | |   | |  | | /  \  | |  | | |__  | |__) |
+        | |  | | |  | |\ \/  \/ / | . ` | |   | |  | |/ /\ \ | |  | |  __| |  _  / 
+        | |__| | |__| | \  /\  /  | |\  | |___| |__| / ____ \| |__| | |____| | \ \ 
+        |_____/ \____/   \/  \/   |_| \_|______\____/_/    \_\_____/|______|_|  \_\
+"#
+    );
 
     log::info!("Starting the Playlist Downloader...");
 
@@ -86,6 +105,7 @@ fn setup_logging() {
                    .unwrap();
 
     let _ = log4rs::init_config(config);
+    // TODO -> better error handling
 
 }
 
@@ -333,10 +353,3 @@ fn download_whole_playlist(db_con: &rusqlite::Connection, playlist_id: String, c
 //          no(there isn't) -> return
 //      no -> download all video, add video ID in a new DB table
 // goto start
-
-
-// TODO
-
-// ortographe
-// setup_logging -> handle error
-// download limit
