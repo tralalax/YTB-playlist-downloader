@@ -1,0 +1,32 @@
+[package]
+name = "ytb_downloader"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+
+[dependencies]
+#youtube_dl = { version = "0.8.1", features = ["yt-dlp", "tokio"], default-features=true }
+youtube_dl = { version = "0.8.1", features = ["tokio"] }
+# https://github.com/yt-dlp/FFmpeg-Builds
+# https://github.com/yt-dlp/yt-dlp
+# https://github.com/GyrosOfWar/youtube-dl-rs     https://docs.rs/youtube_dl/latest/youtube_dl/index.html
+
+rusqlite = { version = "0.29.0", features = ["bundled"] }
+# https://github.com/rusqlite/rusqlite/tree/master
+
+config = "0.13.1"
+# https://github.com/mehcode/config-rs/tree/master
+
+log = "0.4.19"
+log4rs = "1.2.0"
+# https://docs.rs/log4rs/latest/log4rs/
+
+
+[[bin]]
+edition = "2018"
+name = "ytb_downloader_binary"
+path = "src/main.rs"
+# cargo run --bin ytb_downloader_binary
+# cargo build --release
