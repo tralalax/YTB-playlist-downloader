@@ -18,18 +18,19 @@ It relies on [YT-DLP](https://github.com/yt-dlp/yt-dlp) and [ffmpeg](https://git
 __Feel free to contribute or suggest features !__
 
 # Installation :
-Install the [latest release](github.com/tralalax/YTB-playlist-downloader/releases/latest) or build from source : ```cargo build --release```
+1. Install the [latest release](github.com/tralalax/YTB-playlist-downloader/releases/latest) or build from source : ```cargo build --release```
+2. Install [latest release of yt-dlp](https://github.com/yt-dlp/yt-dlp/releases/latest) and the [latest release of ffmpeg](https://github.com/yt-dlp/FFmpeg-Builds/releases/tag/latest)
 
-Run the executable, it will create a config.toml file, a playlist.toml file, a database folder and a log file.
+3. Run the executable, it will create a config.toml file, a playlist.toml file, a database folder and a log file.
 When all files have been created, the application closes. You can then configure the playlist.toml and config.toml files, see Configuration below.
 
 ## Run at startup :
-soon TM
+You can create a shortcut to the application and place it in your `%appdata%\Microsoft\Windows\Startup Menu\Programs\Startup` directory. By doing so, the application will start when your computer starts up and automatically check your playlist for new videos to download.
 
 # Configuration
 After launching the application for the first time, you need to edit the config.toml file. You need to specify the path to yt-dlp and ffmpeg, which you can download here : 
 [YT-DLP](https://github.com/yt-dlp/yt-dlp) [ffmpeg](https://github.com/yt-dlp/FFmpeg-Builds). You can also provide a download path, where the downloaded file will be stored. If no path is specified, the download will default to the current directory.
-And you can specify a preferred file type: `audio` is for audio files in .mp3 format ; `video` is for video files (image+sound) in .mp4 format.
+And you can specify a preferred file type: `audio` is for audio files in .mp3 format ; `video` is for video files (image+sound).
 
 **Note :** ffmpeg is only required for the `audio` format
 
