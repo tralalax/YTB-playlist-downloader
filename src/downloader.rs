@@ -1,5 +1,5 @@
 use youtube_dl::{YoutubeDl, YoutubeDlOutput};
-
+use std::process::Command;
 
 #[derive(Clone)]
 #[allow(dead_code)]
@@ -79,9 +79,13 @@ pub fn download(video: VideoToDl) -> Result<youtube_dl::YoutubeDlOutput, youtube
 fn download_audio(video: VideoToDl) -> Result<youtube_dl::YoutubeDlOutput, youtube_dl::Error> {
 
     let _ydl: YoutubeDlOutput = match YoutubeDl::new(video.url)
-        
         .youtube_dl_path(video.youtube_dl_path)
         .extra_arg("-q")
+        .extra_arg("-i")
+        .extra_arg("--no-abort-on-error")
+        //.extra_arg("--abort-on-unavailable-fragments")
+        .extra_arg("--no-abort-on-unavailable-fragments")
+        .extra_arg("--ignore-errors")
         // DOWNLOAD AUDIO FILE (require ffmpeg)
         .extract_audio(true) 
         .extra_arg("--audio-format")
@@ -104,6 +108,12 @@ fn download_video(video: VideoToDl) -> Result<youtube_dl::YoutubeDlOutput, youtu
     let _ydl: YoutubeDlOutput = match YoutubeDl::new(video.url)
         .youtube_dl_path(video.youtube_dl_path)
         .extra_arg("-q")
+        .extra_arg("-i")
+        .extra_arg("--no-abort-on-error")
+        //.extra_arg("--abort-on-unavailable-fragments")
+        .extra_arg("--no-abort-on-unavailable-fragments")
+        .extra_arg("--ignore-errors")
+
         .extra_arg("--paths")
         .extra_arg(video.dl_path)
         .download(true)
@@ -114,52 +124,57 @@ fn download_video(video: VideoToDl) -> Result<youtube_dl::YoutubeDlOutput, youtu
     };
 }
 
-// get all video ID from a playlist
+/// get all video ID from a playlist
+// TODO -> yt-dlp --flat-playlist --print id
+// https://github.com/yt-dlp/yt-dlp/issues/2117
 #[allow(dead_code)]
-pub fn get_video_from_pl(pl_id: &str, youtube_dl_path: &String) -> Result<Vec<String>, youtube_dl::Error> {
+pub fn get_video_from_pl(pl_id: &str, youtube_dl_path: &String) -> Result<Vec<String>, String> {
 
     let pl_url: String = format!("https://www.youtube.com/playlist?list={}", pl_id);
 
-    let mut ids_list: Vec<String> = Vec::new();
-
-    let _ydl: YoutubeDlOutput = match YoutubeDl::new(pl_url)
-        
-        .youtube_dl_path(youtube_dl_path)
-        .extra_arg("-q")
-        .run()
+    match Command::new(youtube_dl_path)
+        .arg("-q")
+        .arg("-i")
+        .arg("--flat-playlist")
+        .arg("--get-id")
+        .arg(pl_url)
+        .output()
     {
-        Ok(res) => {
+        Ok(output) => {
+            let stdout = String::from_utf8(output.stdout).unwrap();
+            let vec_ids: Vec<String> = stdout.trim_end().split('\n').map(|s| s.to_string()).collect();
 
-            // convert result into a Playlist object
-            let output = YoutubeDlOutput::into_playlist(res);
-
-            // get all video from the playlist result object
-            for single_vid in output.unwrap().entries.unwrap() {
-
-                ids_list.push(single_vid.id);
-            }
-
-            return Ok(ids_list);
+            return Ok(vec_ids);
         },
-        Err(e) => return Err(e),
+        Err(err) => {return Err("bad handled error ssry ".to_string())},
     };
+
 }
 
-// get playlist title
+/// get playlist title
 #[allow(dead_code)]
-pub fn get_playlist_title(pl_id: &str, youtube_dl_path: &String) -> Result<String, youtube_dl::Error> {
+pub fn get_playlist_title(pl_id: &str, youtube_dl_path: &String) -> Result<String, String> {
 
     let pl_url: String = format!("https://www.youtube.com/playlist?list={}", pl_id);
-    
-    let _ydl: YoutubeDlOutput = match YoutubeDl::new(pl_url)
-        .youtube_dl_path(youtube_dl_path)
-        .extra_arg("-q")
-        .run()
+
+    match Command::new(youtube_dl_path)
+        .arg("-q")
+        .arg("-i")
+        .arg("--flat-playlist")
+        .arg("--print")
+        .arg("playlist_title")
+        .arg(pl_url)
+        .output()
     {
-        Ok(res) => {
-            let output = YoutubeDlOutput::into_playlist(res);
-            return Ok(output.unwrap().title.unwrap());
+        Ok(output) => {
+
+            let stdout = String::from_utf8(output.stdout).unwrap();
+
+            let pl_name: String = stdout.split_once("\n").unwrap().0.trim().to_string();
+
+            return Ok(pl_name);
         },
-        Err(e) => return Err(e),
+        Err(err) => {return Err("bad handled error ssry ".to_string())},
     };
+
 }

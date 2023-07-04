@@ -64,7 +64,7 @@ fn main() {
         config_stuff.get("ffmpeg_path").unwrap().to_string(),
         config_stuff.get("download_path").unwrap().to_string(),
         config_stuff.get("youtube_dl_path").unwrap().to_string(),
-        if config_stuff.get("download_type").unwrap().to_string() == "video "{VideoFormat::Video} else {VideoFormat::Audio}
+        if config_stuff.get("download_type").unwrap().to_string() == "video" {VideoFormat::Video} else {VideoFormat::Audio}
     );
 
     // read playlist file
@@ -92,8 +92,10 @@ fn main() {
 
 /// setup loggerr
 fn setup_logging() {
+
+    // log file template
     let logfile = FileAppender::builder()
-        .encoder(Box::new(PatternEncoder::new("{l} - {m}\n")))
+        .encoder(Box::new(PatternEncoder::new("{d(%Y-%m-%d %H:%M:%S)} - {l} : {m}\n")))
         .build("output.log")
         .unwrap();
 
@@ -104,8 +106,11 @@ fn setup_logging() {
                    .build(LevelFilter::Info))
                    .unwrap();
 
-    let _ = log4rs::init_config(config);
-    // TODO -> better error handling
+    // init logger and handle errors
+    match log4rs::init_config(config) {
+        Ok(_) => log::info!("Logger initialized"),
+        Err(err) => log::error!("Logger not initialized : {}", err)
+    }
 
 }
 
@@ -129,8 +134,22 @@ fn start_env_check() {
         }
     }
 
-    // check config file
+    // check playlist file
+    if !Path::new("playlist.toml").exists() {
 
+        log::warn!("playlist.toml not found, creating a new one...");
+
+        // create the playlist.toml file
+        match File::create("playlist.toml") {
+            Ok(_) => log::info!("playlist.toml created"),
+            Err(err) => {
+                log::error!("playlist.toml file not created, try creating it manualy : {}", err);
+                std::process::exit(1);
+            }
+        };
+    }
+
+    // check config file
     let config_content = format!(
         r#"
 ffmpeg_path = ""
@@ -164,22 +183,6 @@ download_type = "" # 'audio' or 'video'
         }
     }
 
-
-    // check playlist file
-    if !Path::new("playlist.toml").exists() {
-
-        log::warn!("playlist.toml not found, creating a new one...");
-
-        // create the playlist.toml file
-        match File::create("playlist.toml") {
-            Ok(_) => log::info!("playlist.toml created"),
-            Err(err) => {
-                log::error!("playlist.toml file not created, try creating it manualy : {}", err);
-                std::process::exit(1);
-            }
-        };
-    }
-
 }
 
 
@@ -208,7 +211,7 @@ fn get_download_path(pl_id: &String, config_dl_path: &String, ytbdl_path: &Strin
 
             Ok(_) => return final_dl_path,
             Err(err) => {
-                log::error!("output folder not created : {}", err);
+                log::error!("folder for {pl_name} not created : {err}");
                 return config_dl_path.to_string();
             }
         }
@@ -283,7 +286,7 @@ fn compare_video_from_db_and_pl(id_from_db: Vec<String>, id_from_ytb: Vec<String
         if id_from_db.contains(&i) {
         }
         else {
-            log::info!("new video to download detected");
+            log::info!("new video to download detected : {i}");
             id_to_dl.push(i)
         }
     }
