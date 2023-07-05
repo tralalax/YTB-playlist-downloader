@@ -1,5 +1,4 @@
-
 ffmpeg_path = "D:\\ffmpeg.exe"
 youtube_dl_path = "D:\\yt-dlp.exe"
-download_path = "D:\\code\\rust\\ytb downloader\\ytb_downloader\\output"
-download_type = "video" # audio / video
+download_path = "E:\\YOUTUBE PLAYLIST BACKUP\\DOWNLOADED"
+download_type = "video" # 'audio' or 'video'
