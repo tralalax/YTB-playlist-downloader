@@ -31,15 +31,17 @@ You can create a shortcut to the application and place it in your `%appdata%\Mic
 After launching the application for the first time, you need to edit the config.toml file. You need to specify the path to yt-dlp and ffmpeg, which you can download here : 
 [YT-DLP](https://github.com/yt-dlp/yt-dlp) [ffmpeg](https://github.com/yt-dlp/FFmpeg-Builds). You can also provide a download path, where the downloaded file will be stored. If no path is specified, the download will default to the current directory.
 
-After configuring the config.toml file, you can add the playlist URL to the playlist.toml file. Here's an example of how it should be written:
+After configuring the `config.toml` file, you can add the playlist URL to the playlist.toml file. Here's an example of how it should be written:
 ```toml
-audio = "https://www.youtube.com/playlist?list=PLHtyfDv32xnEBJiyxKaiDXGCaw974vJbu"
-video = "https://www.youtube.com/watch?v=5W8vqbZhxSo&list=PLHtyfD554dzeSDnEP5uM4N6Jy9sBtAKyPpUp7&index=3"
-audio = "https://www.youtube.com/watch?v=5W8vqbZhxSo&list=PsdGFEgsfYHGdp45xnEP5uM4N6Jy9setAKyP58p7"
+"https://www.youtube.com/playlist?list=PLHtyfDv32xnEVdkhAVsA5sFyjcOv" = "audio"
+"https://www.youtube.com/playlist?list=PLHtyfDv32xnG0E3_NzqO5w7JcA_h" = "video"
+"https://www.youtube.com/playlist?list=PL0usNGW1865yE7D83hLohy0gakwx" = "audio"
 ```
-the name of the key must be `audio` or `video` to specify whether you want to download the video from the associated playlist as an audio or video file.
+the name of the key must be a youtube playlist URL.
+
+
+the value after the `=` sign must be `audio` or `video` to specify whether you want to download the video from the associated playlist as an audio or video file.
 
 (if you specify anything other than `audio` or `video`, the `audio` type will be chosen by default)
 
-the value after the `=` sign must be a youtube playlist URL.
-Make sure you insert the URL of the playlist between `"` and `"`.
+Make sure you insert the URL of the playlist and the download type between `"` and `"`.

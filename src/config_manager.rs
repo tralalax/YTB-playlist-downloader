@@ -118,20 +118,24 @@ pub fn read_playlist_config() -> HashMap<String, VideoFormat> {
 
     for config_line in config_content {
 
-        // get the Key (audio / video)
+        // get the Key -> pl URL
+        
+        // get the playlist ID from the URL
+        let pl_id = config_line.0.split_once("list=");
+        
+        let final_id: String = String::from(pl_id.unwrap().1);     
+
+
+        // get the Value -> download type
                 
         // convert Key to VideoFormat type
-        let dl_type = if config_line.0 == "video" {
+        let dl_type = if config_line.1 == "video" {
             VideoFormat::Video
         } else {
             VideoFormat::Audio
         };
 
-        // get the Value (playlist ID)
-        let pl_id = config_line.1.split_once("list=");
-        
-        let final_id: String = String::from(pl_id.unwrap().1);     
-        
+
         // add the ID to a vector
         playlist_id.insert(final_id, dl_type);
     }
