@@ -2,7 +2,7 @@ use config::Config;
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
-
+use crate::downloader::VideoFormat;
 
 #[allow(dead_code)]
 pub fn read_config_file() -> HashMap<String, String> {
@@ -69,22 +69,24 @@ pub fn read_config_file() -> HashMap<String, String> {
         }
     }
 
+    // NO LONGER USED //
+
     // get download type (audio or video)
-    let dl_type = toml_content.get("download_type");
-    match dl_type {
-        Some(val) => {
-            if val == "audio" {
-                output_dict.insert("download_type".to_string(), val.to_string());
-            }
-            else if val == "video" {
-                output_dict.insert("download_type".to_string(), val.to_string());
-            }
-            else {
-                log::error!("download type (audio/video) not specified or incorrect in config file");
-            }
-        },
-        None => log::error!("download type (audio/video) not specified or incorrect in config file"),
-    }
+    // let dl_type = toml_content.get("download_type");
+    // match dl_type {
+    //     Some(val) => {
+    //         if val == "audio" {
+    //             output_dict.insert("download_type".to_string(), val.to_string());
+    //         }
+    //         else if val == "video" {
+    //             output_dict.insert("download_type".to_string(), val.to_string());
+    //         }
+    //         else {
+    //             log::error!("download type (audio/video) not specified or incorrect in config file");
+    //         }
+    //     },
+    //     None => log::error!("download type (audio/video) not specified or incorrect in config file"),
+    // }
 
     return output_dict;
 
@@ -94,7 +96,7 @@ pub fn read_config_file() -> HashMap<String, String> {
 
 // read playlist.ini file to get playlist URL
 #[allow(dead_code)]
-pub fn read_playlist_config() -> Vec<String> {
+pub fn read_playlist_config() -> HashMap<String, VideoFormat> {
     // read playlist file
     let config = Config::builder()
         .add_source(config::File::with_name("playlist"))
@@ -111,17 +113,27 @@ pub fn read_playlist_config() -> Vec<String> {
         std::process::exit(0);
     }
     
-    // return a vector containing all playlist ID
-    let mut playlist_id: Vec<String> = Vec::new();
+    // return a hashmap containing all playlist ID and their associated download type
+    let mut playlist_id: HashMap<String, VideoFormat> = HashMap::new();
 
     for config_line in config_content {
-        // get only the playlist ID
-        let pl_id = config_line.1.split_once("list=");
 
-        let final_id: String = String::from(pl_id.unwrap().1);        
+        // get the Key (audio / video)
+                
+        // convert Key to VideoFormat type
+        let dl_type = if config_line.0 == "video" {
+            VideoFormat::Video
+        } else {
+            VideoFormat::Audio
+        };
+
+        // get the Value (playlist ID)
+        let pl_id = config_line.1.split_once("list=");
+        
+        let final_id: String = String::from(pl_id.unwrap().1);     
         
         // add the ID to a vector
-        playlist_id.push(final_id);
+        playlist_id.insert(final_id, dl_type);
     }
 
     return playlist_id;

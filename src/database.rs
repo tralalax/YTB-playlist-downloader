@@ -45,7 +45,7 @@ pub fn table_exists(conn: &Connection, table_name: &String) -> bool {
             return exists.unwrap();
         }
         Err(err) => {
-            log::error!("failed to check if table exists : {}", err);
+            log::error!("failed to check if table exists : '{}'", err);
             std::process::exit(1);
         }
     }
@@ -55,7 +55,7 @@ pub fn table_exists(conn: &Connection, table_name: &String) -> bool {
 #[allow(dead_code)]
 pub fn create_table(conn: &Connection, table_name: &String) {
 
-    let query = format!("CREATE TABLE IF NOT EXISTS {} (ytbid text NOT NULL);", table_name);
+    let query = format!("CREATE TABLE IF NOT EXISTS '{}' (ytbid text NOT NULL);", table_name);
 
     match conn.execute(
         &query,
@@ -72,7 +72,7 @@ pub fn create_table(conn: &Connection, table_name: &String) {
 pub fn insert_new_video(conn: &Connection, video: VideoDB) {
 
     match conn.execute(
-        &format!("INSERT INTO {} (ytbid) VALUES (?);", video.playlist_id),
+        &format!("INSERT INTO '{}' (ytbid) VALUES (?);", video.playlist_id),
         params![video.ytb_id],
     )
     {
@@ -86,7 +86,7 @@ pub fn insert_new_video(conn: &Connection, video: VideoDB) {
 pub fn get_video_from_db(conn: &Connection, playlist_id: &String) -> Result<Vec<String>> {
 
 
-    let sql = format!("SELECT ytbid FROM {}", playlist_id);
+    let sql = format!("SELECT ytbid FROM '{}'", playlist_id);
 
     let mut stmt = conn.prepare(&sql)?;
     let rows = stmt.query_map([], |row| row.get(0))?;

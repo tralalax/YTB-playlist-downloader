@@ -9,7 +9,7 @@ mod config_manager;
 use crate::config_manager::{read_config_file, read_playlist_config};
 
 // ytbdl
-use crate::downloader::{VideoToDl, VideoFormat, ConfigParams ,download, get_video_from_pl, get_playlist_title};
+use crate::downloader::{VideoToDl, VideoFormat, ConfigParams ,download, get_video_from_pl, get_playlist_title, update_ytdlp};
 
 // db
 use database::{create_table, insert_new_video, VideoDB, get_video_from_db, table_exists, connect};
@@ -53,38 +53,44 @@ fn main() {
 
     // check environement before running
     start_env_check();
-    
+
     // etablish connection with DB
     let db_con = connect();
-
+    
     // read config file
     let config_stuff: HashMap<String, String> = read_config_file();
-
+    
     let config_params: ConfigParams = ConfigParams::new(
         config_stuff.get("ffmpeg_path").unwrap().to_string(),
         config_stuff.get("download_path").unwrap().to_string(),
         config_stuff.get("youtube_dl_path").unwrap().to_string(),
-        if config_stuff.get("download_type").unwrap().to_string() == "video" {VideoFormat::Video} else {VideoFormat::Audio}
+        //if config_stuff.get("download_type").unwrap().to_string() == "video" {VideoFormat::Video} else {VideoFormat::Audio}
     );
+    
+    // update yt-dlp
+    update_ytdlp(&config_stuff.get("youtube_dl_path").unwrap().to_string());
+    
 
     // read playlist file
-    let playlist_id: Vec<String> = read_playlist_config();
+    //                      <playlist ID , download type>
+    let playlist_id: HashMap<String, VideoFormat> = read_playlist_config();
 
-    // check if playlist ID is in DB
-    for playlist in playlist_id {
+    for (playlist, download_type) in playlist_id {
         log::info!("checking for new videos in playlist ID : {}", playlist);
 
+        // check if the playlist is already in the DB
         let table_exist: bool = table_exists(&db_con, &playlist);
+
 
         if table_exist {
             // playlist is already in DB
             log::info!("This playlist is already in the database, checking for new video to download...");
-            check_for_new_video(&db_con, &playlist, &config_params);
+            check_for_new_video(&db_con, &playlist, &config_params, download_type);
         }
         else {
             // playlist is not in DB
             log::info!("This playlist is not in the database, downloading the whole playlist...");
-            download_whole_playlist(&db_con, playlist, &config_params);
+            download_whole_playlist(&db_con, playlist, &config_params, download_type);
         }
     }
 
@@ -198,7 +204,11 @@ fn get_download_path(pl_id: &String, config_dl_path: &String, ytbdl_path: &Strin
         }
     };
 
-    let final_dl_path: String = format!("{config_dl_path}\\{}", pl_name);
+    // remove invalid caracter in the name
+    let sanitized_pl_name: String = sanitize_name(&pl_name);
+
+    // create the final download path
+    let final_dl_path: String = format!("{config_dl_path}\\{}", sanitized_pl_name);
 
     // check if a folder with playlist name exist in config_dl_path
     if Path::new(&final_dl_path).exists() {
@@ -218,9 +228,27 @@ fn get_download_path(pl_id: &String, config_dl_path: &String, ytbdl_path: &Strin
     }
 }
 
+/// sanitize the folder name to remove special char before creating the drectory
+fn sanitize_name(folder_name: &String) -> String {
+    // List of invalid characters in Windows folder names
+    let invalid_chars: Vec<char> = vec!['<', '>', ':', '"', '/', '\\', '|', '?', '*'];
+
+    // Create a new String to hold the sanitized folder name
+    let mut sanitized_name = String::new();
+
+    // Iterate through each character in the folder name
+    for c in folder_name.chars() {
+        // Check if the character is not in the list of invalid characters
+        if !invalid_chars.contains(&c) {
+            sanitized_name.push(c);
+        }
+    }
+
+    return sanitized_name;
+}
 
 // if the playlist is in DB, check for new video to download
-fn check_for_new_video(db_con: &rusqlite::Connection, playlist_id: &String, config_params: &ConfigParams) {
+fn check_for_new_video(db_con: &rusqlite::Connection, playlist_id: &String, config_params: &ConfigParams, download_type: VideoFormat) {
 
     // extract all video ID from the playlist
     let id_from_ytb: Vec<String> = match get_video_from_pl(&playlist_id, &config_params.youtube_dl_path) {
@@ -251,7 +279,7 @@ fn check_for_new_video(db_con: &rusqlite::Connection, playlist_id: &String, conf
 
         let video_dl: VideoToDl = VideoToDl::new(
             vid_url,
-            config_params.prefered_vid_type.clone(),
+            download_type.clone(),
             download_path.clone(),
             config_params.ffmpeg_path.clone(),
             config_params.youtube_dl_path.clone());
@@ -302,7 +330,7 @@ fn handle_error(msg: String) -> Vec<String> {
 
 
 // if the playlist is not in DB, download the whole playlist and save it in DB
-fn download_whole_playlist(db_con: &rusqlite::Connection, playlist_id: String, config_params: &ConfigParams) {
+fn download_whole_playlist(db_con: &rusqlite::Connection, playlist_id: String, config_params: &ConfigParams, download_type: VideoFormat) {
     // create a new table for this playlist
     create_table(db_con, &playlist_id);
 
@@ -322,7 +350,7 @@ fn download_whole_playlist(db_con: &rusqlite::Connection, playlist_id: String, c
 
                 let video_dl: VideoToDl = VideoToDl::new(
                     vid_url,
-                    config_params.prefered_vid_type.clone(),
+                    download_type.clone(),
                     download_path.clone(),
                     config_params.ffmpeg_path.clone(),
                     config_params.youtube_dl_path.clone());

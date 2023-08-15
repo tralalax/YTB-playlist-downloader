@@ -1,7 +1,7 @@
 use youtube_dl::{YoutubeDl, YoutubeDlOutput};
 use std::process::Command;
 
-#[derive(Clone)]
+#[derive(Debug, Eq, PartialEq, Hash, Clone)]
 #[allow(dead_code)]
 pub enum VideoFormat {
     Audio,
@@ -32,17 +32,25 @@ pub struct ConfigParams {
     pub ffmpeg_path: String,
     pub parent_dl_path: String,
     pub youtube_dl_path: String,
-    pub prefered_vid_type: VideoFormat,
 }
 #[allow(dead_code)]
 impl ConfigParams {
-    pub fn new(ffmpeg_path: String, parent_dl_path: String, youtube_dl_path: String, prefered_vid_type: VideoFormat) -> Self {
-        ConfigParams { ffmpeg_path, parent_dl_path, youtube_dl_path, prefered_vid_type }
+    pub fn new(ffmpeg_path: String, parent_dl_path: String, youtube_dl_path: String) -> Self {
+        ConfigParams { ffmpeg_path, parent_dl_path, youtube_dl_path }
     }
 }
 // impl Copy for ConfigParams {}
     
 
+/// run 'yt-dlp -U' to update yt-dl
+#[allow(dead_code)]
+pub fn update_ytdlp(youtube_dl_path: &String) {
+    Command::new(youtube_dl_path)
+    .arg("-q")
+    .arg("-U");
+
+    return;
+}
 
 
 // path to yt-dlp.exe, required to download video
@@ -81,11 +89,11 @@ fn download_audio(video: VideoToDl) -> Result<youtube_dl::YoutubeDlOutput, youtu
     let _ydl: YoutubeDlOutput = match YoutubeDl::new(video.url)
         .youtube_dl_path(video.youtube_dl_path)
         .extra_arg("-q")
-        .extra_arg("-i")
-        .extra_arg("--no-abort-on-error")
+        //.extra_arg("-i")
+        //.extra_arg("--no-abort-on-error")
         //.extra_arg("--abort-on-unavailable-fragments")
-        .extra_arg("--no-abort-on-unavailable-fragments")
-        .extra_arg("--ignore-errors")
+        //.extra_arg("--no-abort-on-unavailable-fragments")
+        //.extra_arg("--ignore-errors")
         // DOWNLOAD AUDIO FILE (require ffmpeg)
         .extract_audio(true) 
         .extra_arg("--audio-format")
@@ -108,12 +116,16 @@ fn download_video(video: VideoToDl) -> Result<youtube_dl::YoutubeDlOutput, youtu
     let _ydl: YoutubeDlOutput = match YoutubeDl::new(video.url)
         .youtube_dl_path(video.youtube_dl_path)
         .extra_arg("-q")
-        .extra_arg("-i")
-        .extra_arg("--no-abort-on-error")
+        //.extra_arg("-i")
+        //.extra_arg("--no-abort-on-error")
         //.extra_arg("--abort-on-unavailable-fragments")
-        .extra_arg("--no-abort-on-unavailable-fragments")
-        .extra_arg("--ignore-errors")
+        //.extra_arg("--no-abort-on-unavailable-fragments")
+        //.extra_arg("--ignore-errors")
 
+        //.extra_arg("--recode-video") // recode the video to mp4 format
+        //.extra_arg("mp4")
+        .extra_arg("--ffmpeg-location")
+        .extra_arg(video.ffmpeg_path)
         .extra_arg("--paths")
         .extra_arg(video.dl_path)
         .download(true)
@@ -128,7 +140,7 @@ fn download_video(video: VideoToDl) -> Result<youtube_dl::YoutubeDlOutput, youtu
 // TODO -> yt-dlp --flat-playlist --print id
 // https://github.com/yt-dlp/yt-dlp/issues/2117
 #[allow(dead_code)]
-pub fn get_video_from_pl(pl_id: &str, youtube_dl_path: &String) -> Result<Vec<String>, String> {
+pub fn get_video_from_pl(pl_id: &str, youtube_dl_path: &String) -> Result<Vec<String>, std::io::Error> {
 
     let pl_url: String = format!("https://www.youtube.com/playlist?list={}", pl_id);
 
@@ -146,14 +158,15 @@ pub fn get_video_from_pl(pl_id: &str, youtube_dl_path: &String) -> Result<Vec<St
 
             return Ok(vec_ids);
         },
-        Err(err) => {return Err("bad handled error ssry ".to_string())},
+        // TODO -> better error handling
+        Err(err) => {return Err(err)},
     };
 
 }
 
 /// get playlist title
 #[allow(dead_code)]
-pub fn get_playlist_title(pl_id: &str, youtube_dl_path: &String) -> Result<String, String> {
+pub fn get_playlist_title(pl_id: &str, youtube_dl_path: &String) -> Result<String, std::io::Error> {
 
     let pl_url: String = format!("https://www.youtube.com/playlist?list={}", pl_id);
 
@@ -168,13 +181,17 @@ pub fn get_playlist_title(pl_id: &str, youtube_dl_path: &String) -> Result<Strin
     {
         Ok(output) => {
 
-            let stdout = String::from_utf8(output.stdout).unwrap();
-
-            let pl_name: String = stdout.split_once("\n").unwrap().0.trim().to_string();
+            // convert output to readable string            
+            let characters: Vec<char> = output.stdout.iter().map(|&value| char::from_u32(value as u32).unwrap()).collect();
+            let readable_string: String = characters.into_iter().collect();
+            // get 1 playlist title only (first line)
+            // TODO -> POSSIBLE ERROR IF THERE IS ONLY ONE VIDEO IN THE PLAYLST //
+            let pl_name = readable_string.split_once("\n").unwrap().0.trim().to_string();
 
             return Ok(pl_name);
         },
-        Err(err) => {return Err("bad handled error ssry ".to_string())},
+        // TODO -> better error handling
+        Err(err) => {return Err(err)},
     };
 
 }
