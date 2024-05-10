@@ -15,10 +15,7 @@ use crate::downloader::{VideoToDl, VideoFormat, ConfigParams ,download, get_vide
 use database::{create_table, insert_new_video, VideoDB, get_video_from_db, table_exists, connect};
 
 // logging
-use log::LevelFilter;
-use log4rs::append::file::FileAppender;
-use log4rs::encode::pattern::PatternEncoder;
-use log4rs::config::{Appender, Config, Root};
+use simple_logger::SimpleLogger;
 
 // other
 use std::collections::HashMap;
@@ -94,29 +91,16 @@ fn main() {
         }
     }
 
+    log::info!("Playlist Downloader finished");
+
 }
 
 /// setup loggerr
 fn setup_logging() {
 
-    // log file template
-    let logfile = FileAppender::builder()
-        .encoder(Box::new(PatternEncoder::new("{d(%Y-%m-%d %H:%M:%S)} - {l} : {m}\n")))
-        .build("output.log")
-        .unwrap();
+    SimpleLogger::new().init().unwrap();
 
-    let config = Config::builder()
-        .appender(Appender::builder().build("logfile", Box::new(logfile)))
-        .build(Root::builder()
-                   .appender("logfile")
-                   .build(LevelFilter::Info))
-                   .unwrap();
-
-    // init logger and handle errors
-    match log4rs::init_config(config) {
-        Ok(_) => log::info!("Logger initialized"),
-        Err(err) => log::error!("Logger not initialized : {}", err)
-    }
+    log::info!("logger initialized")
 
 }
 
@@ -284,13 +268,14 @@ fn check_for_new_video(db_con: &rusqlite::Connection, playlist_id: &String, conf
             config_params.ffmpeg_path.clone(),
             config_params.youtube_dl_path.clone());
 
-        let video_db: VideoDB = VideoDB::new(String::from(video), playlist_id.clone());
+        let video_db: VideoDB = VideoDB::new(String::from(&video), playlist_id.clone());
         
         match download(video_dl)
         {
             Ok(_) => {
                 // add video ID in DB
                 insert_new_video(db_con, video_db);
+                log::info!("video {} downloaded", video);
             },
             Err(err) => log::error!("downloading a video : {}", err),
         }

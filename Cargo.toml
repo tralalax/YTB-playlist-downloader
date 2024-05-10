@@ -20,7 +20,7 @@ config = "0.13.1"
 # https://github.com/mehcode/config-rs/tree/master
 
 log = "0.4.19"
-log4rs = "1.2.0"
+simple_logger = "5.0.0"
 # https://docs.rs/log4rs/latest/log4rs/
 
 

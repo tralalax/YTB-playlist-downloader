@@ -45,6 +45,9 @@ impl ConfigParams {
 /// run 'yt-dlp -U' to update yt-dl
 #[allow(dead_code)]
 pub fn update_ytdlp(youtube_dl_path: &String) {
+
+    log::info!("updating YT-DLP...");
+
     Command::new(youtube_dl_path)
     .arg("-q")
     .arg("-U");
