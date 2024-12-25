@@ -20,12 +20,18 @@ __Feel free to contribute or suggest features !__
 # Installation :
 1. Install the [latest release](github.com/tralalax/YTB-playlist-downloader/releases/latest) or build from source : ```cargo build --release```
 2. Install the [latest release of yt-dlp](https://github.com/yt-dlp/yt-dlp/releases/latest) and the [latest release of ffmpeg](https://github.com/yt-dlp/FFmpeg-Builds/releases/tag/latest)
-
 3. Run the executable, it will create a config.toml file, a playlist.toml file, a database folder and a log file.
 When all files have been created, the application closes. You can then configure the playlist.toml and config.toml files, see Configuration below.
 
-## Run at startup :
+## Run at startup (windows) :
 You can create a shortcut to the application and place it in your `%appdata%\Microsoft\Windows\Startup Menu\Programs\Startup` directory. By doing so, the application will start when your computer starts up and automatically check your playlist for new videos to download.
+
+## Run with Cron jobs (linux) :
+You might want to install this program on a Linux server to back up your YouTube playlist. A good idea would be to periodically update those backups by running this program with a Cron job.
+The following example runs the program every week :
+```sh
+0 0 * * Sun cd /path/to/ytb_pl_dl-1-2_linux_x86_64_gnu && ./ytb_pl_dl-1-2_linux_x86_64_gnu
+```
 
 # Configuration
 After launching the application for the first time, you need to edit the config.toml file. You need to specify the path to yt-dlp and ffmpeg, which you can download here : 
@@ -45,3 +51,7 @@ the value after the `=` sign must be `audio` or `video` to specify whether you w
 (if you specify anything other than `audio` or `video`, the `audio` type will be chosen by default)
 
 Make sure you insert the URL of the playlist and the download type between `"` and `"`.
+
+# Additional notes
+- if you ever need to clarify which videos have been downloaded or not, you can delete or edit the database in `database/playlist.db`
+- on Windows, logs are stored in a file named `output.log` ; on Linux, everything is printed to stdout
